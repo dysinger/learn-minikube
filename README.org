@@ -1,0 +1,223 @@
+#+title: FP Complete: Learning Kubernetes with Minikube
+#+author: Tim Dysinger
+#+options: toc:nil ^:nil
+#+startup: content hidestars hideblocks
+
+* Setup
+
+** Install Kubernetes Minikube Executable
+
+Ubuntu:
+#+begin_src sh
+  ( cd ~/.local/bin ;# OR YOUR FAVORITE PERSONAL BIN DIR IN YOUR $PATH
+    curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.10.0/minikube-linux-amd64 ;
+    chmod +x minikube )
+#+end_src
+
+MacOS:
+#+begin_src sh
+  ( cd ~/.local/bin ;# OR YOUR FAVORITE PERSONAL BIN DIR IN YOUR $PATH
+    curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.10.0/minikube-darwin-amd64 ;
+    chmod +x minikube )
+#+end_src
+
+*** Install a Virtual Machine Driver
+
+Ubuntu (KVM):
+#+begin_src sh
+  sudo ( apt-get update ;
+         apt install libvirt-bin qemu-kvm ;
+         usermod -a -G libvirtd $(whoami) )
+  ( cd ~/.local/bin ;# OR YOUR FAVORITE PERSONAL BIN DIR IN YOUR $PATH
+    curl -OL https://github.com/dhiltgen/docker-machine-kvm/releases/download/v0.7.0/docker-machine-driver-kvm ;
+    chmod +x docker-machine-driver-kvm )
+  newgrp libvirtd
+#+end_src
+
+Ubuntu or MacOS (VirtualBox):
+Head over to https://virtualbox.org/downloads and use their instructions
+
+** Install Kubernetes Control Executable
+
+Ubuntu:
+#+begin_src sh
+  ( cd ~/.local/bin ;
+    curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.4.0/bin/linux/amd64/kubectl ;
+    chmod +x kubectl )
+#+end_src
+
+MacOS:
+#+begin_src sh
+  ( cd ~/.local/bin ;
+    curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.4.0/bin/darwin/amd64/kubectl ;
+    chmod +x kubectl )
+#+end_src
+
+* Management
+
+** Basic Operation with Minikube
+
+*** Start Kubernetes with Minikube
+
+Ubuntu:
+#+begin_src sh
+  minikube start \
+      --cpus=1 \
+      --disk-size="10g" \
+      --kubernetes-version="v1.4.0" \
+      --memory=1024 \
+      --vm-driver=kvm
+#+end_src
+
+MacOS:
+#+begin_src sh
+  minikube start \
+      --cpus=1 \
+      --disk-size="10g" \
+      --kubernetes-version="v1.4.0" \
+      --memory=1024 \
+      --vm-driver=virtualbox
+#+end_src
+
+*** Exercise Kubernetes Control
+
+#+begin_src sh
+  kubectl version
+  kubectl clusterinfo
+#+end_src
+
+*** View Kubernetes Dashboard
+
+This is a convenient way to fire up the Kubernetes dashboard in the browser.
+#+begin_src sh
+  minikube dashboard
+#+end_src
+
+*** Stop Kubernetes with Minikube
+
+This doesn't destroy the cluster. It just stops it for starting later.
+#+begin_src sh
+  minikube stop
+#+end_src
+
+*** Start Kubernetes again with Minikube
+
+#+begin_src sh
+  minikube start
+#+end_src
+
+*** SSH Into Minkube Kubernetes Nodes
+
+*** Deleting Kubernetes with Minikube
+
+#+begin_src sh
+  minikube delete
+#+end_src
+
+* Learning
+
+** Lesson 1 - Deploying Your First Application
+
+A Simple Web Server
+
+*** Kubernetes Service File
+
+http://kubernetes.io/docs/user-guide/deployments/
+
+#+begin_src yaml :tangle 1-webserver/service.yaml
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: webserver
+  spec:
+    ports:
+    - name: http
+      port: 80
+      targetPort: http
+    selector:
+      app: webserver
+    type: LoadBalancer
+#+end_src
+
+*** Kubernetes Deployment File
+
+http://kubernetes.io/docs/user-guide/deployments/
+
+#+begin_src yaml :tangle 1-webserver/deployment.yaml
+  apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    name: webserver
+  spec:
+    replicas: 1
+    template:
+      metadata:
+        labels:
+          app: webserver
+      spec:
+        containers:
+         - name: webserver
+           image: nginx:stable-alpine
+           ports:
+           - name: http
+             containerPort: 80
+#+end_src
+
+*** Deploy the Webserver & Create the Service
+
+#+begin_src sh :tangle 1-webserver/deploy.sh :shebang "#!/bin/bash -eux"
+  kubectl create -f $PWD
+  kubectl describe service webserver
+  kubectl describe deployment webserver
+  kubectl describe pods webserver
+#+end_src
+
+*** Accessing Your Service in Your Browser
+
+#+begin_src sh :tangle 1-webserver/deploy.sh :shebang "#!/bin/bash -eux"
+  minikube service webserver
+#+end_src
+
+*** Customize the Webserver Image
+
+Install some new HTML content for the webserver deployment
+#+begin_src html :tangle 1-webserver/html/index.html
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Updated!</title>
+    </head>
+    <body>
+      <h1>HELLO FROM THE UPDATED WEBSERVER!</h1>
+    </body>
+  </html>
+#+end_src
+
+Use a Dockerfile to extend our webserver's image with the custom HTML content
+#+begin_src dockerfile :tangle 1-webserver/Dockerfile
+  FROM nginx:stable-alpine
+  COPY html /usr/share/nginx/html
+#+end_src
+
+Build a new Docker image for the webserver deployment
+#+begin_src sh :tangle 1-webserver/update.sh :shebang "#!/bin/bash -eux"
+  eval $(minikube docker-env)
+  docker build -t webserver:0.1.0 $PWD
+#+end_src
+
+*** Updating the Deployment
+
+#+begin_src sh :tangle 1-webserver/update.sh :shebang "#!/bin/bash -eux"
+  kubectl set image deployment/webserver webserver=webserver:0.1.0
+  sleep 10
+  kubectl describe service webserver
+  kubectl describe deployment webserver
+  kubectl describe pods webserver
+#+end_src
+
+*** See Your Updates in the Browser
+
+#+begin_src sh :tangle 1-webserver/update.sh :shebang "#!/bin/bash -eux"
+  minikube service webserver
+#+end_src

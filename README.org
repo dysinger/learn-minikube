@@ -89,12 +89,12 @@ VirtualBox (Linux|Mac):
 
 *** Exercise Kubernetes Control
 
-Show your version information of Kubernetes client/server.
+Show the version information of Kubernetes client & server.
 #+begin_src sh
   kubectl version
 #+end_src
 
-Show you a summary of services running on the cluster.
+Show a summary of services & their URLs running on the cluster.
 #+begin_src sh
   kubectl cluster-info
 #+end_src
@@ -116,8 +116,8 @@ fire it up later.
 
 *** Start Kubernetes again with Minikube
 
-If you've previously shutdown your computer or issued a `minikube stop` before
-then you can start it simply.
+If you've previously shutdown your computer or issued a `minikube stop` then you
+can restart it with a simple start command.
 #+begin_src sh
   minikube start
 #+end_src
@@ -128,6 +128,11 @@ If you want to mess around inside of the node that hosts your minikube instance,
 you can SSH.
 #+begin_src sh
   minikube ssh
+#+end_src
+
+Or just run commands directly on the minikube instance
+#+begin_src sh
+  minikube ssh 'docker images'
 #+end_src
 
 *** Deleting Kubernetes with Minikube

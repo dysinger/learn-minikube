@@ -3,7 +3,16 @@
 #+options: toc:nil ^:nil
 #+startup: content hidestars hideblocks
 
-* Setup
+This is a tutorial on learning Kubernetes locally with Minikube. We intend to
+add to it on a weekly basis until we explore most the Kubernetes features.
+Follow along if you like.
+
+* Minikube Setup
+
+This tutorial assumes that you know Docker well enough to build an image from
+the command line. You'll need to have a local docker client. Doesn't need to be
+a local daemon, you only need the actual cli `docker` client. Minikube provides
+its own docker daemon.
 
 ** Install Kubernetes Minikube Executable
 
@@ -53,7 +62,7 @@ MacOS:
     chmod +x kubectl )
 #+end_src
 
-* Management
+* Minikube Management
 
 ** Basic Operation with Minikube
 
@@ -130,7 +139,7 @@ start fresh.
   minikube delete
 #+end_src
 
-* Learning
+* Kubernetes Learning
 
 ** Lesson 1 - Deploying Your First Application
 
@@ -274,6 +283,9 @@ Remember you can also go to the dashboard & look in your browser as well.
 #+begin_src sh :tangle 1-webserver/update.sh :shebang "#!/bin/bash -eux"
   minikube dashboard
 #+end_src
+
+You can see by looking at Replica Sets that you've had two deployments. There is
+an option to roll back that we'll explore later. This is useful or operations.
 
 *** View Your Updates in the Browser
 

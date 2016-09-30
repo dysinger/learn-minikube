@@ -10,9 +10,8 @@ Follow along if you like.
 * Minikube Setup
 
 This tutorial assumes that you know Docker well enough to build an image from
-the command line. You'll need to have a local docker client. Doesn't need to be
-a local daemon, you only need the actual cli `docker` client. Minikube provides
-its own docker daemon.
+the command line. You do not need a local Docker daemon running. You only need
+the `docker` client executable. Minikube provides its own Docker daemon.
 
 ** Install Kubernetes Minikube Executable
 

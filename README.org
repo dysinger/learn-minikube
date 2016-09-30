@@ -59,7 +59,7 @@ MacOS:
 
 *** Start Kubernetes with Minikube
 
-Ubuntu:
+KVM (Linux):
 #+begin_src sh
   minikube start \
       --cpus=1 \
@@ -69,7 +69,7 @@ Ubuntu:
       --vm-driver=kvm
 #+end_src
 
-MacOS:
+VirtualBox (Linux|Mac):
 #+begin_src sh
   minikube start \
       --cpus=1 \
@@ -81,9 +81,14 @@ MacOS:
 
 *** Exercise Kubernetes Control
 
+Show your version information of Kubernetes client/server.
 #+begin_src sh
   kubectl version
-  kubectl clusterinfo
+#+end_src
+
+Show you a summary of services running on the cluster.
+#+begin_src sh
+  kubectl cluster-info
 #+end_src
 
 *** View Kubernetes Dashboard
@@ -95,21 +100,32 @@ This is a convenient way to fire up the Kubernetes dashboard in the browser.
 
 *** Stop Kubernetes with Minikube
 
-This doesn't destroy the cluster. It just stops it for starting later.
+This doesn't destroy the cluster. It just stops it. You can use plain 'start' to
+fire it up later.
 #+begin_src sh
   minikube stop
 #+end_src
 
 *** Start Kubernetes again with Minikube
 
+If you've previously shutdown your computer or issued a `minikube stop` before
+then you can start it simply.
 #+begin_src sh
   minikube start
 #+end_src
 
 *** SSH Into Minkube Kubernetes Nodes
 
+If you want to mess around inside of the node that hosts your minikube instance,
+you can SSH.
+#+begin_src sh
+  minikube ssh
+#+end_src
+
 *** Deleting Kubernetes with Minikube
 
+This will completely destroy your minikube instance. This is useful if want to
+start fresh.
 #+begin_src sh
   minikube delete
 #+end_src
@@ -118,28 +134,22 @@ This doesn't destroy the cluster. It just stops it for starting later.
 
 ** Lesson 1 - Deploying Your First Application
 
-A Simple Web Server
-
-*** Kubernetes Service File
-
-http://kubernetes.io/docs/user-guide/deployments/
-
-#+begin_src yaml :tangle 1-webserver/service.yaml
-  apiVersion: v1
-  kind: Service
-  metadata:
-    name: webserver
-  spec:
-    ports:
-    - name: http
-      port: 80
-      targetPort: http
-    selector:
-      app: webserver
-    type: LoadBalancer
-#+end_src
+This is a a simple web server. It only serves static files & doesn't need to
+connect to a database. We need two components of Kubernetes to deploy it. The
+Deployment (defines the distributed application) and the Service (exposes the
+distributed application externally).
 
 *** Kubernetes Deployment File
+
+First we need to tell Kubernetes what to deploy. We'll use a Deployment file to
+describe this. Deployment files contain meta-data with pod and volume
+specifications.
+
+All the details about your docker images, ports, environment variables and the
+like go here. In this specific case, it's pretty simple. We label the
+deployment, pod and container as 'webserver' so we can select based on that
+metadata later when we define the service. have a regular www port 80 to expose
+from 1 container. We've requested 1 replica to be available in the cluster.
 
 http://kubernetes.io/docs/user-guide/deployments/
 
@@ -163,10 +173,44 @@ http://kubernetes.io/docs/user-guide/deployments/
              containerPort: 80
 #+end_src
 
+*** Kubernetes Service File
+
+Next we define the Service file. Here we tell Kubernetes that we want to select
+on app=webserver from our above Deployment file and expose http port 80 to the
+world as a LoadBalancer.
+
+http://kubernetes.io/docs/user-guide/services/
+
+#+begin_src yaml :tangle 1-webserver/service.yaml
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: webserver
+  spec:
+    ports:
+    - name: http
+      port: 80
+      targetPort: http
+    selector:
+      app: webserver
+    type: LoadBalancer
+#+end_src
+
 *** Deploy the Webserver & Create the Service
 
+In the 1-webserver directory run these commands to deploy, pause for 10 seconds
+& then gather information about your deploy.
 #+begin_src sh :tangle 1-webserver/deploy.sh :shebang "#!/bin/bash -eux"
-  kubectl create -f $PWD
+  kubectl create -f .
+  sleep 10
+  kubectl get service webserver
+  kubectl get deployment webserver
+  kubectl get pods webserver
+#+end_src
+
+If you didn't get enough information from the the get `command` you can dive
+deeper with `describe`.
+#+begin_src sh :tangle 1-webserver/deploy.sh :shebang "#!/bin/bash -eux"
   kubectl describe service webserver
   kubectl describe deployment webserver
   kubectl describe pods webserver
@@ -174,13 +218,18 @@ http://kubernetes.io/docs/user-guide/deployments/
 
 *** Accessing Your Service in Your Browser
 
+This command will open your new webserver service in your browser, using the
+exposed service port on your host VM network.
 #+begin_src sh :tangle 1-webserver/deploy.sh :shebang "#!/bin/bash -eux"
   minikube service webserver
 #+end_src
 
 *** Customize the Webserver Image
 
-Install some new HTML content for the webserver deployment
+We want to see that our image for our webserver deployment changed successfully.
+The easiest way to do this with a webserver is to put some new html pages in the
+webserver directory. We'll do just by defining a new landing page for nginx
+(index.html).
 #+begin_src html :tangle 1-webserver/html/index.html
   <!DOCTYPE html>
   <html>
@@ -194,30 +243,49 @@ Install some new HTML content for the webserver deployment
   </html>
 #+end_src
 
-Use a Dockerfile to extend our webserver's image with the custom HTML content
+Then we'll use a Dockerfile to extend our webserver's default nginx webserver
+image with the custom HTML page above.
 #+begin_src dockerfile :tangle 1-webserver/Dockerfile
   FROM nginx:stable-alpine
   COPY html /usr/share/nginx/html
 #+end_src
 
-Build a new Docker image for the webserver deployment
+In the 1-webserver directory issues these commands to direct your docker client
+to use the minikube instance's docker daemon and then build a new Docker image
+for the webserver deployment.
 #+begin_src sh :tangle 1-webserver/update.sh :shebang "#!/bin/bash -eux"
   eval $(minikube docker-env)
-  docker build -t webserver:0.1.0 $PWD
+  docker build -t webserver:0.1.0 .
 #+end_src
 
 *** Updating the Deployment
 
+Upgrade to the new version of our webserver's docker image, pause for 10 seconds
+while it deploys & then gather information about how it went.
 #+begin_src sh :tangle 1-webserver/update.sh :shebang "#!/bin/bash -eux"
   kubectl set image deployment/webserver webserver=webserver:0.1.0
   sleep 10
-  kubectl describe service webserver
-  kubectl describe deployment webserver
-  kubectl describe pods webserver
+  kubectl get service webserver
+  kubectl get deployment webserver
+  kubectl get pods webserver
 #+end_src
 
-*** See Your Updates in the Browser
+Remember you can also go to the dashboard & look in your browser as well.
+#+begin_src sh :tangle 1-webserver/update.sh :shebang "#!/bin/bash -eux"
+  minikube dashboard
+#+end_src
+
+*** View Your Updates in the Browser
 
 #+begin_src sh :tangle 1-webserver/update.sh :shebang "#!/bin/bash -eux"
   minikube service webserver
+#+end_src
+Make sure you refresh your browser. Sometimes browser caching can plan tricks on
+you.
+
+You can also check it your webserver's output on the command line. Use the --url
+flag to just print the URL instead of opening it in the browser. Combine this
+with curl to pull the webpage & print it on the console.
+#+begin_src sh :tangle 1-webserver/update.sh :shebang "#!/bin/bash -eux"
+  curl -sSL $(minikube service --url webserver)
 #+end_src

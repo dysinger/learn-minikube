@@ -63,9 +63,11 @@ MacOS:
 
 * Minikube Management
 
-** Basic Operation with Minikube
+Minikube helps you manage a local single-node Kubernetes cluster. You will still
+use `kubectl` for all Kubernetes management functions like you would with a real
+cluster. Here are some basic operation examples.
 
-*** Start Kubernetes with Minikube
+** Start Kubernetes with Minikube
 
 KVM (Linux):
 #+begin_src sh
@@ -87,7 +89,7 @@ VirtualBox (Linux|Mac):
       --vm-driver=virtualbox
 #+end_src
 
-*** Exercise Kubernetes Control
+** Exercise Kubernetes Control
 
 Show the version information of Kubernetes client & server.
 #+begin_src sh
@@ -99,14 +101,14 @@ Show a summary of services & their URLs running on the cluster.
   kubectl cluster-info
 #+end_src
 
-*** View Kubernetes Dashboard
+** View Kubernetes Dashboard
 
 This is a convenient way to fire up the Kubernetes dashboard in the browser.
 #+begin_src sh
   minikube dashboard
 #+end_src
 
-*** Stop Kubernetes with Minikube
+** Stop Kubernetes with Minikube
 
 This doesn't destroy the cluster. It just stops it. You can use plain 'start' to
 fire it up later.
@@ -114,7 +116,7 @@ fire it up later.
   minikube stop
 #+end_src
 
-*** Start Kubernetes again with Minikube
+** Start Kubernetes again with Minikube
 
 If you've previously shutdown your computer or issued a `minikube stop` then you
 can restart it with a simple start command.
@@ -122,7 +124,7 @@ can restart it with a simple start command.
   minikube start
 #+end_src
 
-*** SSH Into Minkube Kubernetes Nodes
+** SSH Into Minkube Kubernetes Nodes
 
 If you want to mess around inside of the node that hosts your minikube instance,
 you can SSH.
@@ -135,7 +137,7 @@ Or just run commands directly on the minikube instance
   minikube ssh 'docker images'
 #+end_src
 
-*** Deleting Kubernetes with Minikube
+** Deleting Kubernetes with Minikube
 
 This will completely destroy your minikube instance. This is useful if want to
 start fresh.
@@ -161,8 +163,9 @@ specifications.
 All the details about your docker images, ports, environment variables and the
 like go here. In this specific case, it's pretty simple. We label the
 deployment, pod and container as 'webserver' so we can select based on that
-metadata later when we define the service. have a regular www port 80 to expose
-from 1 container. We've requested 1 replica to be available in the cluster.
+metadata later when we define the service. We have a regular www port 80 to
+expose from 1 container. We've requested 1 replica to be available in the
+cluster.
 
 http://kubernetes.io/docs/user-guide/deployments/
 
@@ -241,10 +244,11 @@ exposed service port on your host VM network.
 
 *** Customize the Webserver Image
 
-We want to see that our image for our webserver deployment changed successfully.
-The easiest way to do this with a webserver is to put some new html pages in the
-webserver directory. We'll do just by defining a new landing page for nginx
-(index.html).
+We want update our webserver. We'll do that by creating a new webserver docker
+image. We want to see that our newly updated image deployed successfully. The
+easiest way to do this with a webserver is to put some new html content in the
+webserver directory. We'll do by defining a new landing page for nginx
+(index.html).  Place this in 1-webserver/html/index.html
 #+begin_src html :tangle 1-webserver/html/index.html
   <!DOCTYPE html>
   <html>
@@ -259,15 +263,16 @@ webserver directory. We'll do just by defining a new landing page for nginx
 #+end_src
 
 Then we'll use a Dockerfile to extend our webserver's default nginx webserver
-image with the custom HTML page above.
+image with the custom HTML page above. Create `1-webserver/Dockerfile` with the
+following content.
 #+begin_src dockerfile :tangle 1-webserver/Dockerfile
   FROM nginx:stable-alpine
   COPY html /usr/share/nginx/html
 #+end_src
 
-In the 1-webserver directory issues these commands to direct your docker client
-to use the minikube instance's docker daemon and then build a new Docker image
-for the webserver deployment.
+In the `1-webserver` directory issues these commands to direct your docker
+client to use the minikube instance's docker daemon and then build a new Docker
+image for the webserver deployment.
 #+begin_src sh :tangle 1-webserver/update.sh :shebang "#!/bin/bash -eux"
   eval $(minikube docker-env)
   docker build -t webserver:0.1.0 .

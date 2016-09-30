@@ -6,7 +6,8 @@ kubectl set image deployment/webserver webserver=webserver:0.1.0
 sleep 10
 kubectl get service webserver
 kubectl get deployment webserver
-kubectl get pods webserver
+kubectl get replicasets
+kubectl get pods
 
 minikube dashboard
 

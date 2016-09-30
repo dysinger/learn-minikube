@@ -1,4 +1,4 @@
-#+title: FP Complete: Learning Kubernetes with Minikube
+#+title: Learning Kubernetes with Minikube
 #+author: Tim Dysinger
 #+options: toc:nil ^:nil
 #+startup: content hidestars hideblocks

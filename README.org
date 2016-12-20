@@ -321,3 +321,49 @@ Deploy it again later if you repeating the steps above.
   kubectl delete service webserver
   kubectl delete deployment webserver
 #+end_src
+
+** Lesson 2 - Adding an "addon" to your Minikube Kubernetes Cluster
+
+Kubernetes addons are services that run in the Kubernetes cluster. Minikube can
+deploy Kubernetes addons when it starts a new cluster. If you place your addon
+in the ~/.minikube/addons/ folder, it will be deployed with the next Minkube
+start.
+
+*** Delete the Current Minikube Cluster
+
+#+begin_src sh :tangle 2-addons/deploy.sh
+  minikube delete
+#+end_src
+
+*** Place an AddOn in Your Minikube Addons Folder
+
+We are going to use the Kubernetes cluster-monitoring addon which includes
+InfluxDB, Grafana & Heapster
+https://github.com/kubernetes/kubernetes/tree/v1.5.1/cluster/addons/cluster-monitoring/influxdb
+
+#+begin_src sh :tangle 2-addons/deploy.sh
+  ( mkdir -p ~/.minikube/addons/cluster-monitoring/ ;
+    cd ~/.minikube/addons/cluster-monitoring/ ;
+    curl -sSLO https://raw.githubusercontent.com/kubernetes/kubernetes/v1.5.1/cluster/addons/cluster-monitoring/influxdb/grafana-service.yaml ;
+    curl -sSLO https://raw.githubusercontent.com/kubernetes/kubernetes/v1.5.1/cluster/addons/cluster-monitoring/influxdb/heapster-controller.yaml ;
+    curl -sSLO https://raw.githubusercontent.com/kubernetes/kubernetes/v1.5.1/cluster/addons/cluster-monitoring/influxdb/heapster-service.yaml ;
+    curl -sSLO https://raw.githubusercontent.com/kubernetes/kubernetes/v1.5.1/cluster/addons/cluster-monitoring/influxdb/influxdb-grafana-controller.yaml ;
+    curl -sSLO https://raw.githubusercontent.com/kubernetes/kubernetes/v1.5.1/cluster/addons/cluster-monitoring/influxdb/influxdb-service.yaml )
+#+end_src
+
+*** Start the Minikube Cluster Again
+
+We are going to start the minikube cluster again but this time with a little
+more room to wiggle (2 cores, 20gb disk & 2gb ram).
+#+begin_src sh :tangle 2-addons/deploy.sh
+  minikube start \
+      --cpus=2 \
+      --disk-size="20g" \
+      --kubernetes-version="v1.5.1" \
+      --memory=2048 \
+      --vm-driver=virtualbox
+#+end_src
+
+*** View the dashboard
+
+*** View the addon

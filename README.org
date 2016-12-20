@@ -18,14 +18,14 @@ the `docker` client executable. Minikube provides its own Docker daemon.
 Ubuntu:
 #+begin_src sh
   ( cd ~/.local/bin ;# OR YOUR FAVORITE PERSONAL BIN DIR IN YOUR $PATH
-    curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.10.0/minikube-linux-amd64 ;
+    curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.14.0/minikube-linux-amd64 ;
     chmod +x minikube )
 #+end_src
 
 MacOS:
 #+begin_src sh
   ( cd ~/.local/bin ;# OR YOUR FAVORITE PERSONAL BIN DIR IN YOUR $PATH
-    curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.10.0/minikube-darwin-amd64 ;
+    curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.14.0/minikube-darwin-amd64 ;
     chmod +x minikube )
 #+end_src
 
@@ -50,14 +50,14 @@ Head over to https://virtualbox.org/downloads and use their instructions
 Ubuntu:
 #+begin_src sh
   ( cd ~/.local/bin ;
-    curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.4.0/bin/linux/amd64/kubectl ;
+    curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.5.1/bin/linux/amd64/kubectl ;
     chmod +x kubectl )
 #+end_src
 
 MacOS:
 #+begin_src sh
   ( cd ~/.local/bin ;
-    curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.4.0/bin/darwin/amd64/kubectl ;
+    curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.5.1/bin/darwin/amd64/kubectl ;
     chmod +x kubectl )
 #+end_src
 
@@ -74,7 +74,7 @@ KVM (Linux):
   minikube start \
       --cpus=1 \
       --disk-size="10g" \
-      --kubernetes-version="v1.4.0" \
+      --kubernetes-version="v1.5.1" \
       --memory=1024 \
       --vm-driver=kvm
 #+end_src
@@ -84,7 +84,7 @@ VirtualBox (Linux|Mac):
   minikube start \
       --cpus=1 \
       --disk-size="10g" \
-      --kubernetes-version="v1.4.0" \
+      --kubernetes-version="v1.5.1" \
       --memory=1024 \
       --vm-driver=virtualbox
 #+end_src
